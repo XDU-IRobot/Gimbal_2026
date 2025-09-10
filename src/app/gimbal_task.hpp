@@ -16,4 +16,4 @@ extern void gimbal_task(void const* argument);
 #endif
 
 
-#endif /* ATTITUDE_TASK_H */
+#endif /* GIMBAL_TASK_H */
