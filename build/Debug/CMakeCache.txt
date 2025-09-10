@@ -14,6 +14,9 @@
 # EXTERNAL cache entries
 ########################
 
+//Build the testing tree.
+BUILD_TESTING:BOOL=ON
+
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=C:/arm-gnu-toolchain-13.3.rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-addr2line.exe
 
@@ -223,8 +226,54 @@ CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=C:/Users/chenm/Desktop/steer_wheel_2025/New/s
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+//Path to the coverage program that CTest uses for performing coverage
+// inspection
+COVERAGE_COMMAND:FILEPATH=COVERAGE_COMMAND-NOTFOUND
+
+//Extra command line flags to pass to the coverage tool
+COVERAGE_EXTRA_FLAGS:STRING=-l
+
+//How many times to retry timed-out CTest submissions.
+CTEST_SUBMIT_RETRY_COUNT:STRING=3
+
+//How long to wait between timed-out CTest submissions.
+CTEST_SUBMIT_RETRY_DELAY:STRING=5
+
+//Maximum time allowed before CTest will kill the test.
+DART_TESTING_TIMEOUT:STRING=1500
+
+//Path to a file.
+Eigen3_INCLUDE_DIR:PATH=C:/Users/chenm/Desktop/steer_wheel_2025/New/steer_wheel_gimbal/libs/librm/libs/eigen
+
+//Path to a program.
+GITCOMMAND:FILEPATH=C:/Program Files/Git/cmd/git.exe
+
 //The directory containing a CMake configuration file for JetsonGPIO.
 JetsonGPIO_DIR:PATH=JetsonGPIO_DIR-NOTFOUND
+
+//Build the Kalman examples
+KALMAN_BUILD_EXAMPLES:BOOL=OFF
+
+//Value Computed by CMake
+Kalman_BINARY_DIR:STATIC=C:/Users/chenm/Desktop/steer_wheel_2025/New/steer_wheel_gimbal/build/Debug/libs/librm/libs/kalman
+
+//Value Computed by CMake
+Kalman_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+Kalman_SOURCE_DIR:STATIC=C:/Users/chenm/Desktop/steer_wheel_2025/New/steer_wheel_gimbal/libs/librm/libs/kalman
+
+//Command to build the project
+MAKECOMMAND:STRING=D:\cmake\bin\cmake.exe --build . --config "${CTEST_CONFIGURATION_TYPE}"
+
+//Path to the memory checking command, used for memory error detection.
+MEMORYCHECK_COMMAND:FILEPATH=MEMORYCHECK_COMMAND-NOTFOUND
+
+//File that contains suppressions for the memory checker
+MEMORYCHECK_SUPPRESSIONS_FILE:FILEPATH=
+
+//Name of the computer/site where compile is being run
+SITE:STRING=神州战神
 
 //Path to a library.
 WIRINGPI_LIBRARIES:FILEPATH=WIRINGPI_LIBRARIES-NOTFOUND
@@ -301,6 +350,8 @@ CMAKE_CACHE_PATCH_VERSION:INTERNAL=3
 CMAKE_COMMAND:INTERNAL=D:/cmake/bin/cmake.exe
 //Path to cpack program executable.
 CMAKE_CPACK_COMMAND:INTERNAL=D:/cmake/bin/cpack.exe
+//ADVANCED property for variable: CMAKE_CTEST_COMMAND
+CMAKE_CTEST_COMMAND-ADVANCED:INTERNAL=1
 //Path to ctest program executable.
 CMAKE_CTEST_COMMAND:INTERNAL=D:/cmake/bin/ctest.exe
 //ADVANCED property for variable: CMAKE_CXX_COMPILER_AR
@@ -375,7 +426,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=4
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=10
 //ADVANCED property for variable: CMAKE_OBJDUMP
 CMAKE_OBJDUMP-ADVANCED:INTERNAL=1
 //Platform information initialized
@@ -420,4 +471,26 @@ CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 COMPILER_SUPPORTS_CXX17:INTERNAL=1
 //Test COMPILER_SUPPORTS_CXX1Z
 COMPILER_SUPPORTS_CXX1Z:INTERNAL=1
+//ADVANCED property for variable: COVERAGE_COMMAND
+COVERAGE_COMMAND-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: COVERAGE_EXTRA_FLAGS
+COVERAGE_EXTRA_FLAGS-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CTEST_SUBMIT_RETRY_COUNT
+CTEST_SUBMIT_RETRY_COUNT-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CTEST_SUBMIT_RETRY_DELAY
+CTEST_SUBMIT_RETRY_DELAY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: DART_TESTING_TIMEOUT
+DART_TESTING_TIMEOUT-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Eigen3_INCLUDE_DIR
+Eigen3_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: GITCOMMAND
+GITCOMMAND-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: MAKECOMMAND
+MAKECOMMAND-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: MEMORYCHECK_COMMAND
+MEMORYCHECK_COMMAND-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: MEMORYCHECK_SUPPRESSIONS_FILE
+MEMORYCHECK_SUPPRESSIONS_FILE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: SITE
+SITE-ADVANCED:INTERNAL=1
 

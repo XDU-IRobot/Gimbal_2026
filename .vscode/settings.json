@@ -112,7 +112,11 @@
     "usbd_desc.h": "c",
     "stm32f4xx.h": "c",
     "stdio.h": "c",
-    "freertos.h": "c"
+    "freertos.h": "c",
+    "timers.h": "c",
+    "librm.hpp": "c",
+    "communicate_task.hpp": "c",
+    "attitude_task.hpp": "c"
   },
   "cortex-debug.variableUseNaturalFormat": false
 }
