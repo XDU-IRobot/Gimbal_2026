@@ -48,8 +48,8 @@
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
-osThreadId attitudeHandle;
 osThreadId gimbalHandle;
+osThreadId attitudeHandle;
 osThreadId communicateHandle;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,9 +58,9 @@ osThreadId communicateHandle;
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
-extern void attitude_task(void const * argument);
-extern void gimbal_task(void const * argument);
-extern void communicate_task(void const * argument);
+extern void GimbalTask(void const * argument);
+extern void AttitudeTask(void const * argument);
+extern void CommunicateTask(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -112,16 +112,16 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-  /* definition and creation of attitude */
-  osThreadDef(attitude, attitude_task, osPriorityIdle, 0, 512);
-  attitudeHandle = osThreadCreate(osThread(attitude), NULL);
-
   /* definition and creation of gimbal */
-  osThreadDef(gimbal, gimbal_task, osPriorityIdle, 0, 1024);
+  osThreadDef(gimbal, GimbalTask, osPriorityIdle, 0, 1024);
   gimbalHandle = osThreadCreate(osThread(gimbal), NULL);
 
+  /* definition and creation of attitude */
+  osThreadDef(attitude, AttitudeTask, osPriorityIdle, 0, 512);
+  attitudeHandle = osThreadCreate(osThread(attitude), NULL);
+
   /* definition and creation of communicate */
-  osThreadDef(communicate, communicate_task, osPriorityIdle, 0, 1024);
+  osThreadDef(communicate, CommunicateTask, osPriorityIdle, 0, 1024);
   communicateHandle = osThreadCreate(osThread(communicate), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */

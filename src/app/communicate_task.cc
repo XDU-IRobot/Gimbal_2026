@@ -1,7 +1,7 @@
 #include "communicate_task.hpp"
 extern "C"
 {
-    void communicate_task(void const *argument)
+    void CommunicateTask(void const *argument)
     {
     }
 }

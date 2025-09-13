@@ -10,7 +10,7 @@ extern "C"
 {
 #endif
 
-    extern void attitude_task(void const *argument);
+    extern void AttitudeTask(void const *argument);
 
 #ifdef __cplusplus
 }
