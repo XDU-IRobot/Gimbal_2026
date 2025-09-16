@@ -10,11 +10,6 @@ using namespace rm;
 using namespace rm::hal;
 using namespace rm::device;
 
-typedef struct {
-  std::array<u8, 128> data;
-  u16 len;
-} referee_rx_data_t;
-
 class RcReferee {
  public:
   RcReferee() = delete;

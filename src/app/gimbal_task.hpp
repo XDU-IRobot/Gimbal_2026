@@ -7,17 +7,6 @@
 
 #include "librm.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-  extern void GimbalTask(void const *argument);
-
-#ifdef __cplusplus
-}
-#endif
-
 using namespace rm;
 using namespace device;
 using namespace modules::algorithm;
@@ -27,14 +16,14 @@ class Gimbal
 public:
   Gimbal();
   ~Gimbal() = default;
-  
-  i8 ChassisMoveXRequest(){ return ChassisRequestStatePacket_.ChassisMoveXRequest; }
-  i8 ChassisMoveYRequest(){ return ChassisRequestStatePacket_.ChassisMoveYRequest; }
-  u8 ChassisStateRequest(){ return ChassisRequestStatePacket_.ChassisStateRequest; }
-  u8 UiChange(){ return ChassisRequestStatePacket_.UiChange; }
-  u8 GetTargetFlag(){ return ChassisRequestStatePacket_.GetTargetFlag; }
-  u8 SuggestFireFlag(){ return ChassisRequestStatePacket_.SuggestFireFlag; }
-  i8 AimSpeedChange(){ return ChassisRequestStatePacket_.AimSpeedChange; }
+
+  i8 ChassisMoveXRequest() { return ChassisRequestStatePacket_.ChassisMoveXRequest; }
+  i8 ChassisMoveYRequest() { return ChassisRequestStatePacket_.ChassisMoveYRequest; }
+  u8 ChassisStateRequest() { return ChassisRequestStatePacket_.ChassisStateRequest; }
+  u8 UiChange() { return ChassisRequestStatePacket_.UiChange; }
+  u8 GetTargetFlag() { return ChassisRequestStatePacket_.GetTargetFlag; }
+  u8 SuggestFireFlag() { return ChassisRequestStatePacket_.SuggestFireFlag; }
+  i8 AimSpeedChange() { return ChassisRequestStatePacket_.AimSpeedChange; }
 
 private:
   // 状态机
@@ -121,8 +110,6 @@ private:
   i16 heat_last_;      // 上一次热量值
   i16 heat_delaytime_; // 热量发送延迟时间
 
-  const f32 once_circle_; // 单圈编码值 17000
-
   i16 back_turn_time_; // 拨盘反转时长
   i16 back_turn_flag_; // 拨盘反转触发时长 100
 
@@ -133,9 +120,6 @@ private:
 
   u32 shoot_flag_;      // 开火标志
   u32 shoot_flag_last_; // 上一次开火标志
-
-  const f32 kyaw_speed_;   // 云台yaw轴速度前馈系数 1.2
-  const f32 kyaw_current_; // 云台yaw轴电流前馈系数 -0.5
 
   bool speed_change_flag_; // 速度模式改变标志
 
@@ -149,19 +133,25 @@ private:
   bool DFstate_; // 大符状态
   bool XFstate_; // 小符状态
 
+  const f32 once_circle_;  // 单圈编码值 17000
+  const f32 kyaw_speed_;   // 云台yaw轴速度前馈系数 1.2
+  const f32 kyaw_current_; // 云台yaw轴电流前馈系数 -0.5
+
 private:
-  void StateUpdate();          // 云台状态更新
   void GimbalInit();           // 云台初始化
-  void ChassisStateUpdate();   // 底盘控制状态更新
+  void StateUpdate();          // 云台状态基更新
   void GimbalUpdate();         // 云台状态更新
-  void GimbalDisableUpdate();  // 云台电机失能计算
-  void AmmoDisableUpdate();    // 摩擦轮机构失能计算
-  void RotorDisableUpdate();   // 拨盘失能计算
+  void ChassisStateUpdate();   // 底盘控制状态更新
   void GimbalEnableUpdate();   // 云台电机使能计算
-  void AmmoEnableUpdate();     // 摩擦轮机构使能计算
+  void GimbalDisableUpdate();  // 云台电机失能计算
   void RotorEnableUpdate();    // 拨盘使能计算
+  void RotorDisableUpdate();   // 拨盘失能计算
+  void AmmoEnableUpdate();     // 摩擦轮机构使能计算
+  void AmmoDisableUpdate();    // 摩擦轮机构失能计算
   void GimbalAimbotUpdate();   // 装甲板自瞄云台计算,控制权交给NUC
   void GimbalMatchUpdate();    // 比赛模式云台计算
+  void RotorAimbotUpdate();    // 自瞄模式拨盘模式更新
+  void RotorMatchUpdate();     // 比赛模式拨盘模式更新
   void DaMiaoMotorEnable();    // 达妙电机使能
   void DaMiaoMotorDisable();   // 达妙电机失能
   void GimbalRCDataUpdate();   // 遥控数据更新
@@ -171,5 +161,16 @@ private:
   void BuffPIDUpdate();        // 打符pid数据更新
   void RotorMotorDataUpdate(); // 拨盘电机数据更新
 };
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+  extern void GimbalTask(void const *argument);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* GIMBAL_TASK_H */

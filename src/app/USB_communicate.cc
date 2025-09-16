@@ -2,10 +2,17 @@
 #include "communicate_task.hpp"
 #include "attitude_task.hpp"
 
+#include "usbd_cdc_if.h"
+
 AimbotFrame_SCM_t Aimbot_s;
 GimabalImuFrame_SCM_t GimabalImu;
 extern ChassisCommunicator *chassis_communicator;
 extern INS_t INS;
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /**
  * @brief          Usb接收数据
@@ -13,7 +20,7 @@ extern INS_t INS;
  * @param[in]      数据长度
  * @retval         none
  */
-void UsbReceive(uint8_t *rx_data, uint8_t len) {
+void USBReceive(uint8_t *rx_data, uint8_t len) {
   if (rx_data[0] == 0x55 && rx_data[len - 1] == 0xFF) {
     switch (rx_data[1]) {
       case 0x02:
@@ -35,13 +42,17 @@ void UsbReceive(uint8_t *rx_data, uint8_t len) {
  * @param[in]      数据id
  * @retval         none
  */
-void UsbSendMessage(uint8_t *address, uint16_t len, uint8_t id) {
+void USBSendMessage(uint8_t *address, uint16_t len, uint8_t id) {
   address[0] = 0x55;
   address[1] = id;
   address[len - 1] = 0xff;
   CDC_Transmit_FS(address, len);
 }
 
+/**
+ * @brief          数据处理与发送
+ * @retval         none
+ */
 void GimbalImuSend() {
   GimabalImu.TimeStamp = 0;
   GimabalImu.q0 = INS.q[0];
@@ -49,5 +60,9 @@ void GimbalImuSend() {
   GimabalImu.q2 = INS.q[2];
   GimabalImu.q3 = INS.q[3];
   GimabalImu.robot_id = (chassis_communicator->robot_id() == 1) ? 103 : 3;
-  UsbSendMessage((uint8_t *)&GimabalImu, (uint16_t)sizeof(GimabalImu), 0x1);
+  USBSendMessage((uint8_t *)&GimabalImu, (uint16_t)sizeof(GimabalImu), 0x01);
 }
+
+#ifdef __cplusplus
+}
+#endif

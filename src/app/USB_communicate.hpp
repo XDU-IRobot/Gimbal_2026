@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "usbd_cdc_if.h"
-
 typedef struct __attribute__((packed))
 {
     // 包头
@@ -47,13 +45,18 @@ typedef struct __attribute__((packed))
     uint8_t _EOF;
 } GimabalImuFrame_SCM_t;
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @brief          Usb接收数据
  * @param[in]      数据地址指针
  * @param[in]      数据长度
  * @retval         none
  */
-extern void UsbReceive(uint8_t *rx_data, uint8_t len);
+void USBReceive(uint8_t *rx_data, uint8_t len);
 
 /**
  * @brief          Usb数据发送
@@ -62,7 +65,16 @@ extern void UsbReceive(uint8_t *rx_data, uint8_t len);
  * @param[in]      数据id
  * @retval         none
  */
-extern void UsbSendMessage(uint8_t *address, uint16_t len, uint8_t id);
+void USBSendMessage(uint8_t *address, uint16_t len, uint8_t id);
 
-extern void GimbalImuSend();
+/**
+ * @brief          数据处理与发送
+ * @retval         none
+ */
+void GimbalImuSend();
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* USB_COMMUNICATE_H */

@@ -1,6 +1,5 @@
 #include "attitude_task.hpp"
 
-using namespace rm;
 using rm::device::BMI088;
 using rm::modules::algorithm::MahonyAhrs;
 

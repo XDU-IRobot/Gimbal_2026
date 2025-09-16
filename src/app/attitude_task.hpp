@@ -7,6 +7,8 @@
 
 #include "librm.hpp"
 
+using namespace rm;
+
 struct INS_t
 {
     f32 q[4];     // 四元数

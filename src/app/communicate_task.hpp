@@ -5,21 +5,8 @@
 
 #include "librm.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-  extern void CommunicateTask(void const *argument);
-
-#ifdef __cplusplus
-}
-#endif
-
 using namespace rm;
 using namespace rm::device;
-
-// enum class POWER { CHASSIS, GIMBAL, AMMOBOOSTER };
 
 class ChassisCommunicator final : public CanDevice
 {
@@ -57,5 +44,16 @@ private:
 
   u8 tx_buf_[8]{0};
 };
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+  extern void CommunicateTask(void const *argument);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* COMMUNICATE_TASK_H */
