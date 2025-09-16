@@ -27,6 +27,14 @@ class Gimbal
 public:
   Gimbal();
   ~Gimbal() = default;
+  
+  i8 ChassisMoveXRequest(){ return ChassisRequestStatePacket_.ChassisMoveXRequest; }
+  i8 ChassisMoveYRequest(){ return ChassisRequestStatePacket_.ChassisMoveYRequest; }
+  u8 ChassisStateRequest(){ return ChassisRequestStatePacket_.ChassisStateRequest; }
+  u8 UiChange(){ return ChassisRequestStatePacket_.UiChange; }
+  u8 GetTargetFlag(){ return ChassisRequestStatePacket_.GetTargetFlag; }
+  u8 SuggestFireFlag(){ return ChassisRequestStatePacket_.SuggestFireFlag; }
+  i8 AimSpeedChange(){ return ChassisRequestStatePacket_.AimSpeedChange; }
 
 private:
   // 状态机
@@ -42,7 +50,7 @@ private:
     GM_SINGLE_WHEEL // 单轮模式
   };
 
-  struct ChassisRequestState
+  struct ChassisRequestState_t
   {
     i8 ChassisMoveXRequest; // x轴运动控制
     i8 ChassisMoveYRequest; // y轴运动控制
@@ -51,7 +59,7 @@ private:
     u8 GetTargetFlag;       // 自瞄状态
     u8 SuggestFireFlag;     // 建议开火
     i8 AimSpeedChange;      // 转速等级
-    i8 reserve[2];          // 保留位
+    i8 reserve[1];          // 保留位
   };
 
   DmMotorSettings<DmMotorControlMode::kMit> *pitch_motor_settings_; // 云台pitch电机设置
@@ -69,7 +77,7 @@ private:
   RcSwitchState left_flag_;  // 遥控器左侧挡位
   RcSwitchState right_flag_; // 遥控器右侧挡位
 
-  ChassisRequestState RequestStatePacket_; // 底盘控制需求数据
+  ChassisRequestState_t ChassisRequestStatePacket_; // 底盘控制需求数据
 
   PID<PIDType::kPosition> yaw_pid_speed_;        // 云台yaw轴默认速度pid
   RingPID<PIDType::kPosition> yaw_pid_position_; // 云台yaw轴默认位置pid

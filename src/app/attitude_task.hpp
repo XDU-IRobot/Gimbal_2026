@@ -2,8 +2,20 @@
 #define ATTITUDE_TASK_H
 
 #include "cmsis_os.h"
+#include "spi.h"
+#include "usart.h"
 
 #include "librm.hpp"
+
+struct INS_t
+{
+    f32 q[4];     // 四元数
+    f32 yaw;      // 偏航角（角度值）
+    f32 pitch;    // 俯仰角（角度值）
+    f32 roll;     // 横滚角（角度值）
+    f32 gyro[3];  // 角速度
+    f32 accel[3]; // 加速度
+};
 
 #ifdef __cplusplus
 extern "C"

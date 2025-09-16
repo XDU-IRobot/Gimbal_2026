@@ -1,4 +1,6 @@
 #include "gimbal_task.hpp"
+#include "communicate_task.hpp"
+#include "attitude_task.hpp"
 
 using namespace rm;
 using namespace rm::hal;
@@ -6,12 +8,14 @@ using namespace rm::device;
 using namespace rm::modules::algorithm;
 using namespace rm::modules::algorithm::utils;
 
-static Gimbal *gimbal;
+Gimbal *gimbal;
+hal::Can can1(hcan1);
+hal::Can can2(hcan2);
 static VT03 *tcremote;
 static DR16 *remote;
 static hal::Serial *remote_uart;
-static hal::Can can1(hcan1);
-static hal::Can can2(hcan2);
+extern ChassisCommunicator *chassis_communicator;
+extern INS_t INS;
 
 Gimbal::Gimbal() : yaw_motor_(can1, 4),
 
@@ -25,7 +29,7 @@ Gimbal::Gimbal() : yaw_motor_(can1, 4),
                    left_flag_(RcSwitchState::kDown),
                    right_flag_(RcSwitchState::kDown),
 
-                   RequestStatePacket_{0, 0, 0, 0, 0, 0, 0, 0},
+                   ChassisRequestStatePacket_{0, 0, 0, 0, 0, 0, 0, 0},
 
                    yaw_pid_speed_(400.0f, 0.0f, 400.0f, 25000.0f, 0.0f),
                    yaw_pid_position_(12.0f, 0.0f, 800.0f, 10000.0f, 0.0f, 360.0f),
