@@ -116,7 +116,11 @@
     "timers.h": "c",
     "librm.hpp": "c",
     "communicate_task.hpp": "c",
-    "attitude_task.hpp": "c"
+    "attitude_task.hpp": "c",
+    "usb_communicate.hpp": "c",
+    "stdlib.h": "c",
+    "string.h": "c",
+    "usb_communicate.h": "c"
   },
   "cortex-debug.variableUseNaturalFormat": false
 }

@@ -12,8 +12,7 @@ ChassisCommunicator::ChassisCommunicator(hal::CanInterface &can) : CanDevice(can
 extern Gimbal *gimbal;
 extern hal::Can can1;
 
-void ChassisCommunicator::RxCallback(const hal::CanMsg *msg)
-{
+void ChassisCommunicator::RxCallback(const hal::CanMsg *msg) {
   GimbalRequestStatePacket_.heat_real = ((u16)msg->data[0] << 8 | (u16)msg->data[1]);
   GimbalRequestStatePacket_.cooling_speed = ((u16)msg->data[2] << 8 | (u16)msg->data[3]);
   GimbalRequestStatePacket_.heat_limit = ((u16)msg->data[4] << 8 | (u16)msg->data[5]);
@@ -24,8 +23,7 @@ void ChassisCommunicator::RxCallback(const hal::CanMsg *msg)
   GimbalRequestStatePacket_.ammo_power_state = ((0x40 & (u8)msg->data[7]) >> 6);
 }
 
-void ChassisCommunicator::SendChassisCommand()
-{
+void ChassisCommunicator::SendChassisCommand() {
   tx_buf_[0] = gimbal->ChassisMoveXRequest();
   tx_buf_[1] = gimbal->ChassisMoveYRequest();
   tx_buf_[2] = gimbal->ChassisStateRequest();
@@ -36,15 +34,12 @@ void ChassisCommunicator::SendChassisCommand()
   this->can_->Write(0x120, tx_buf_, 8);
 }
 
-extern "C"
-{
-  void CommunicateTask(void const *argument)
-  {
-    chassis_communicator = new ChassisCommunicator{can1};
-    for (;;)
-    { // 1000Hz
-      chassis_communicator->SendChassisCommand();
-      osDelay(1);
-    }
+extern "C" {
+void CommunicateTask(void const *argument) {
+  chassis_communicator = new ChassisCommunicator{can1};
+  while (1) {  // 1000Hz
+    chassis_communicator->SendChassisCommand();
+    osDelay(1);
   }
+}
 }

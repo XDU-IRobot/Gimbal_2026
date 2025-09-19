@@ -268,14 +268,14 @@ void Gimbal::GimbalUpdate() {
  * @tparam ChassisRequestStatePacket_ 向底盘发送can包数据
  */
 void Gimbal::ChassisStateUpdate() {
-  chassis_x_rc_ =
-      Constrain(remote->right_x() / 660.0f - (f32)remote->key(RcKey::kA) + (f32)remote->key(RcKey::kD) -
-                    (f32)(rc_remote->data().keyboard_key >> 2 & 0x01) + (f32)(rc_remote->data().keyboard_key >> 3 & 0x01),
-                -1.0f, 1.0f);
-  chassis_y_rc_ =
-      Constrain(remote->right_y() / 660.0f + (f32)remote->key(RcKey::kW) - (f32)remote->key(RcKey::kS) +
-                    (f32)(rc_remote->data().keyboard_key >> 0 & 0x01) - (f32)(rc_remote->data().keyboard_key >> 1 & 0x01),
-                -1.0f, 1.0f);
+  chassis_x_rc_ = Constrain(remote->right_x() / 660.0f - (f32)remote->key(RcKey::kA) + (f32)remote->key(RcKey::kD) -
+                                (f32)(rc_remote->data().keyboard_key >> 2 & 0x01) +
+                                (f32)(rc_remote->data().keyboard_key >> 3 & 0x01),
+                            -1.0f, 1.0f);
+  chassis_y_rc_ = Constrain(remote->right_y() / 660.0f + (f32)remote->key(RcKey::kW) - (f32)remote->key(RcKey::kS) +
+                                (f32)(rc_remote->data().keyboard_key >> 0 & 0x01) -
+                                (f32)(rc_remote->data().keyboard_key >> 1 & 0x01),
+                            -1.0f, 1.0f);
   ChassisRequestStatePacket_.UiChange =
       (remote->key(RcKey::kR) == 1 || (rc_remote->data().keyboard_key >> 8 & 0x01) == 1) ? 1 : 0;  // Ui是否开启
 
@@ -632,7 +632,8 @@ void Gimbal::RotorMatchUpdate() {
         ((aimbot_frame.AimbotState >> 1) & 0x01) == 1) {
       ammo_flag_rc_ = 1;
     } else if (remote->mouse_button_right() == 0 && rc_remote->data().mouse_button_right == 0 &&
-               (remote->dial() >= 650 || remote->mouse_button_left() == 1 || rc_remote->data().mouse_button_left == 1)) {
+               (remote->dial() >= 650 || remote->mouse_button_left() == 1 ||
+                rc_remote->data().mouse_button_left == 1)) {
       ammo_flag_rc_ = 1;
     } else if (remote->dial() <= -650) {
       shoot_flag_ = 1;
@@ -861,7 +862,7 @@ void GimbalTask(void const *argument) {
   RcReferee rcdata(referee_uart);
   rcdata.Begin();
 
-  for (;;) {
+  while (1) {
     gimbal->StateUpdate();         // 云台状态更新
     gimbal->GimbalUpdate();        // 云台所有电机状态更新
     gimbal->ChassisStateUpdate();  // 底盘状态更新
