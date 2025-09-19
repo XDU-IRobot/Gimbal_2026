@@ -19,7 +19,7 @@ extern "C"
         {
             // 更新数据
             bmi088.Update();
-            mahony.Update(rm::modules::algorithm::ImuData6Dof{-bmi088.gyro_y(), bmi088.gyro_x(), bmi088.gyro_z() + 0.0015f,
+            mahony.Update(rm::modules::algorithm::ImuData6Dof{-bmi088.gyro_y(), bmi088.gyro_x(), bmi088.gyro_z() + INS.yaw_gyro_bias,
                                                               -bmi088.accel_y(), bmi088.accel_x(), bmi088.accel_z()});
 
             INS.q[0] = mahony.quaternion().w;

@@ -4,8 +4,8 @@
 
 #include "usbd_cdc_if.h"
 
-AimbotFrame_SCM_t Aimbot_s;
-GimabalImuFrame_SCM_t GimabalImu;
+AimbotFrame_SCM_t aimbot_frame;
+GimabalImuFrame_SCM_t gimbal_imu_frame;
 extern ChassisCommunicator *chassis_communicator;
 extern INS_t INS;
 
@@ -24,9 +24,9 @@ void USBReceive(uint8_t *rx_data, uint8_t len) {
   if (rx_data[0] == 0x55 && rx_data[len - 1] == 0xFF) {
     switch (rx_data[1]) {
       case 0x02:
-        memcpy(&Aimbot_s, rx_data, len);
-        Aimbot_s.YawRelativeAngle = Aimbot_s.Yaw;
-        Aimbot_s.PitchRelativeAngle = Aimbot_s.Pitch;
+        memcpy(&aimbot_frame, rx_data, len);
+        aimbot_frame.YawRelativeAngle = aimbot_frame.Yaw;
+        aimbot_frame.PitchRelativeAngle = aimbot_frame.Pitch;
         break;
         
       default:
@@ -54,13 +54,13 @@ void USBSendMessage(uint8_t *address, uint16_t len, uint8_t id) {
  * @retval         none
  */
 void GimbalImuSend() {
-  GimabalImu.TimeStamp = 0;
-  GimabalImu.q0 = INS.q[0];
-  GimabalImu.q1 = INS.q[1];
-  GimabalImu.q2 = INS.q[2];
-  GimabalImu.q3 = INS.q[3];
-  GimabalImu.robot_id = (chassis_communicator->robot_id() == 1) ? 103 : 3;
-  USBSendMessage((uint8_t *)&GimabalImu, (uint16_t)sizeof(GimabalImu), 0x01);
+  gimbal_imu_frame.TimeStamp = 0;
+  gimbal_imu_frame.q0 = INS.q[0];
+  gimbal_imu_frame.q1 = INS.q[1];
+  gimbal_imu_frame.q2 = INS.q[2];
+  gimbal_imu_frame.q3 = INS.q[3];
+  gimbal_imu_frame.robot_id = (chassis_communicator->robot_id() == 1) ? 103 : 3;
+  USBSendMessage((uint8_t *)&gimbal_imu_frame, (uint16_t)sizeof(gimbal_imu_frame), 0x01);
 }
 
 #ifdef __cplusplus
