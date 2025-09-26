@@ -1,5 +1,5 @@
-#ifndef RC_REFEREE_DATA_H
-#define RC_REFEREE_DATA_H
+#ifndef __RC_REFEREE_DATA_HPP__
+#define __RC_REFEREE_DATA_HPP__
 
 #include <queue>
 #include <array>
@@ -22,4 +22,4 @@ class RcReferee {
   SerialInterface *serial_;
 };
 
-#endif /* RC_REFEREE_DATA_H */
+#endif /* __RC_REFEREE_DATA_HPP__ */

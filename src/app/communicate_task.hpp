@@ -1,5 +1,5 @@
-#ifndef COMMUNICATE_TASK_H
-#define COMMUNICATE_TASK_H
+#ifndef __COMMUNICATE_TASK_HPP__
+#define __COMMUNICATE_TASK_HPP__
 
 #include "cmsis_os.h"
 
@@ -8,9 +8,8 @@
 using namespace rm;
 using namespace rm::device;
 
-class ChassisCommunicator final : public CanDevice
-{
-public:
+class ChassisCommunicator final : public CanDevice {
+ public:
   explicit ChassisCommunicator(hal::CanInterface &can);
   ChassisCommunicator() = delete;
   ~ChassisCommunicator() override = default;
@@ -27,10 +26,9 @@ public:
   void RxCallback(const hal::CanMsg *msg) override;
   void SendChassisCommand();
 
-private:
-  struct GimbalRequestState_t
-  {
-    u16 heat_real;     
+ private:
+  struct GimbalRequestState_t {
+    u16 heat_real;
     u16 heat_limit;
     u16 cooling_speed;
     f32 cooling_msg;
@@ -38,22 +36,19 @@ private:
     u8 gimbal_power_state;
     u8 chassis_power_state;
     u8 ammo_power_state;
-  };
-
-  GimbalRequestState_t GimbalRequestStatePacket_; // 云台控制需求数据
+  } GimbalRequestStatePacket_;  // 云台控制需求数据
 
   u8 tx_buf_[8]{0};
 };
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-  extern void CommunicateTask(void const *argument);
+extern void CommunicateTask(void const *argument);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* COMMUNICATE_TASK_H */
+#endif /* __COMMUNICATE_TASK_HPP__ */

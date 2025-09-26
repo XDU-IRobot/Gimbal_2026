@@ -1,5 +1,5 @@
-#ifndef USB_COMMUNICATE_H
-#define USB_COMMUNICATE_H
+#ifndef __USB_COMMUNICATE_HPP__
+#define __USB_COMMUNICATE_HPP__
 
 #include <stdint.h>
 #include <string.h>
@@ -77,4 +77,4 @@ void GimbalImuSend();
 }
 #endif
 
-#endif /* USB_COMMUNICATE_H */
+#endif /* __USB_COMMUNICATE_HPP__ */

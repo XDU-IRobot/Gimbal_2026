@@ -1,5 +1,5 @@
-#ifndef ATTITUDE_TASK_H
-#define ATTITUDE_TASK_H
+#ifndef __ATTITUDE_TASK_HPP__
+#define __ATTITUDE_TASK_HPP__
 
 #include "cmsis_os.h"
 #include "spi.h"
@@ -32,4 +32,4 @@ extern void AttitudeTask(void const *argument);
 }
 #endif
 
-#endif /* ATTITUDE_TASK_H */
+#endif /* __ATTITUDE_TASK_HPP__ */

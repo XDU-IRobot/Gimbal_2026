@@ -1,12 +1,6 @@
 #include "communicate_task.hpp"
 #include "gimbal_task.hpp"
 
-#include <iostream>
-
-using namespace rm;
-using namespace rm::device;
-using namespace rm::modules::algorithm::utils;
-
 ChassisCommunicator *chassis_communicator = nullptr;
 ChassisCommunicator::ChassisCommunicator(hal::CanInterface &can) : CanDevice(can, 0x100) {}
 extern Gimbal *gimbal;

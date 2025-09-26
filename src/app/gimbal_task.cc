@@ -4,16 +4,10 @@
 #include "USB_communicate.hpp"
 #include "rc_referee_data.hpp"
 
-using namespace rm;
-using namespace rm::hal;
-using namespace rm::device;
-using namespace rm::modules::algorithm;
-using namespace rm::modules::algorithm::utils;
-
 Gimbal *gimbal;
-hal::Can can1(hcan1);
-hal::Can can2(hcan2);
 VT03 *rc_remote;
+Can can1(hcan1);
+Can can2(hcan2);
 static DR16 *remote;
 static hal::Serial *remote_uart;
 extern ChassisCommunicator *chassis_communicator;

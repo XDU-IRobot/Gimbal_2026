@@ -1,5 +1,5 @@
-#ifndef GIMBAL_TASK_H
-#define GIMBAL_TASK_H
+#ifndef __GIMBAL_TASK_HPP__
+#define __GIMBAL_TASK_HPP__
 
 #include "cmsis_os.h"
 #include "usart.h"
@@ -8,8 +8,10 @@
 #include "librm.hpp"
 
 using namespace rm;
-using namespace device;
-using namespace modules::algorithm;
+using namespace rm::hal;
+using namespace rm::device;
+using namespace rm::modules::algorithm;
+using namespace rm::modules::algorithm::utils;
 
 class Gimbal {
  public:
@@ -183,4 +185,4 @@ extern void GimbalTask(void const *argument);
 }
 #endif
 
-#endif /* GIMBAL_TASK_H */
+#endif /* __GIMBAL_TASK_HPP__ */
