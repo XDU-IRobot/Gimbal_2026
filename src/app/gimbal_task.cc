@@ -8,12 +8,14 @@ Gimbal *gimbal;
 VT03 *rc_remote;
 Can can1(hcan1);
 Can can2(hcan2);
+
 static DR16 *remote;
 static hal::Serial *remote_uart;
-extern ChassisCommunicator *chassis_communicator;
-extern INS_t INS;
+
 extern AimbotFrame_SCM_t aimbot_frame;
 extern GimabalImuFrame_SCM_t gimbal_imu_frame;
+extern INS_t *INS;
+extern ChassisCommunicator *chassis_communicator;
 
 Gimbal::Gimbal()
     : yaw_motor_(can1, 4),
@@ -136,8 +138,8 @@ void Gimbal::GimbalInit() {
   // }
 
   osDelay(1000);
-  gimbal_yaw_rc_ = INS.yaw;      // 云台yaw初始化
-  gimbal_pitch_rc_ = INS.pitch;  // 云台pitch初始化
+  gimbal_yaw_rc_ = INS->yaw;      // 云台yaw初始化
+  gimbal_pitch_rc_ = INS->pitch;  // 云台pitch初始化
 }
 
 /**
@@ -539,8 +541,8 @@ void Gimbal::GimbalAimbotUpdate() {
 void Gimbal::GimbalDisableUpdate() {
   DaMiaoMotorDisable();
   gimbal_imu_frame.mode = 0x00;
-  gimbal_yaw_rc_ = INS.yaw;  // 云台位置初始化
-  gimbal_pitch_rc_ = INS.pitch;
+  gimbal_yaw_rc_ = INS->yaw;  // 云台位置初始化
+  gimbal_pitch_rc_ = INS->pitch;
   yaw_motor_.SetCurrent(0);
 }
 
@@ -800,9 +802,9 @@ void Gimbal::AimbotDateUpdate() {
 void Gimbal::MovePIDUpdate() {
   gimbal_yaw_rc_ = LoopConstrain(gimbal_yaw_rc_, 0.0f, 360.0f);                                // yaw轴周期限制
   gimbal_pitch_rc_ = Constrain(gimbal_pitch_rc_, -highest_pitch_angle_, lowest_pitch_angle_);  // pitch轴限位
-  yaw_pid_position_.Update(gimbal_yaw_rc_, INS.yaw);                                           // pid更新
+  yaw_pid_position_.Update(gimbal_yaw_rc_, INS->yaw);                                           // pid更新
   yaw_pid_speed_.Update(yaw_pid_position_.value() + kyaw_speed_ * yaw_motor_.rpm(), yaw_motor_.rpm());
-  pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS.pitch);
+  pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS->pitch);
   pitch_pid_speed_.Update(pitch_pid_position_.value(), pitch_motor_->vel());
 }
 
@@ -814,9 +816,9 @@ void Gimbal::AimPIDUpdate() {
   gimbal_yaw_rc_ = LoopConstrain(gimbal_yaw_rc_, 0.0f, 360.0f);                                // yaw轴周期限制
   gimbal_pitch_rc_ = Constrain(gimbal_pitch_rc_, -highest_pitch_angle_, lowest_pitch_angle_);  // pitch轴限位
 
-  aimbot_yaw_pid_position_.Update(gimbal_yaw_rc_, INS.yaw);  // pid更新
+  aimbot_yaw_pid_position_.Update(gimbal_yaw_rc_, INS->yaw);  // pid更新
   aimbot_yaw_pid_speed_.Update(aimbot_yaw_pid_position_.value() + kyaw_speed_ * yaw_motor_.rpm(), yaw_motor_.rpm());
-  aimbot_pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS.pitch);
+  aimbot_pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS->pitch);
   aimbot_pitch_pid_speed_.Update(aimbot_pitch_pid_position_.value(), pitch_motor_->vel());
 }
 
@@ -828,9 +830,9 @@ void Gimbal::BuffPIDUpdate() {
   gimbal_yaw_rc_ = LoopConstrain(gimbal_yaw_rc_, 0.0f, 360.0f);                                // yaw轴周期限制
   gimbal_pitch_rc_ = Constrain(gimbal_pitch_rc_, -highest_pitch_angle_, lowest_pitch_angle_);  // pitch轴限位
 
-  buff_yaw_pid_position_.Update(gimbal_yaw_rc_, INS.yaw);  // pid更新
+  buff_yaw_pid_position_.Update(gimbal_yaw_rc_, INS->yaw);  // pid更新
   buff_yaw_pid_speed_.Update(buff_yaw_pid_position_.value() + kyaw_speed_ * yaw_motor_.rpm(), yaw_motor_.rpm());
-  buff_pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS.pitch);
+  buff_pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS->pitch);
   buff_pitch_pid_speed_.Update(buff_pitch_pid_position_.value(), pitch_motor_->vel());
 }
 
