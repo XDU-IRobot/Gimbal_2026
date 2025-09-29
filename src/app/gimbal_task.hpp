@@ -18,7 +18,6 @@ class Gimbal {
   Gimbal();
   ~Gimbal() = default;
 
- public:
   i8 ChassisMoveXRequest() { return ChassisRequestStatePacket_.ChassisMoveXRequest; }
   i8 ChassisMoveYRequest() { return ChassisRequestStatePacket_.ChassisMoveYRequest; }
   u8 ChassisStateRequest() { return ChassisRequestStatePacket_.ChassisStateRequest; }
@@ -27,13 +26,11 @@ class Gimbal {
   u8 SuggestFireFlag() { return ChassisRequestStatePacket_.SuggestFireFlag; }
   i8 AimSpeedChange() { return ChassisRequestStatePacket_.AimSpeedChange; }
 
- public:
   void GimbalInit();          // 云台初始化
   void StateUpdate();         // 云台状态基更新
   void GimbalUpdate();        // 云台状态更新
   void ChassisStateUpdate();  // 底盘控制状态更新
 
- private:
   // 状态机
   typedef enum {
     GM_NO_FORCE = 0,     // 无力模式
@@ -46,6 +43,7 @@ class Gimbal {
     GM_SINGLE_WHEEL = 7  // 单轮模式
   } StateMachineType;
 
+ private:
   struct ChassisRequestState_t {
     i8 ChassisMoveXRequest;  // x轴运动控制
     i8 ChassisMoveYRequest;  // y轴运动控制
@@ -155,7 +153,6 @@ class Gimbal {
   const f32 highest_pitch_angle_;   // 云台pitch轴最高 35.0f
   const f32 lowest_pitch_angle_;    // 云台pitch轴最低 30.0f
 
- private:
   void GimbalEnableUpdate();    // 云台电机使能计算
   void GimbalDisableUpdate();   // 云台电机失能计算
   void RotorEnableUpdate();     // 拨盘使能计算
