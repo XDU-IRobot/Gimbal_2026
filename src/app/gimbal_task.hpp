@@ -18,6 +18,7 @@ class Gimbal {
   Gimbal();
   ~Gimbal() = default;
 
+ public:
   i8 ChassisMoveXRequest() { return ChassisRequestStatePacket_.ChassisMoveXRequest; }
   i8 ChassisMoveYRequest() { return ChassisRequestStatePacket_.ChassisMoveYRequest; }
   u8 ChassisStateRequest() { return ChassisRequestStatePacket_.ChassisStateRequest; }
@@ -26,18 +27,24 @@ class Gimbal {
   u8 SuggestFireFlag() { return ChassisRequestStatePacket_.SuggestFireFlag; }
   i8 AimSpeedChange() { return ChassisRequestStatePacket_.AimSpeedChange; }
 
+ public:
+  void GimbalInit();          // 云台初始化
+  void StateUpdate();         // 云台状态基更新
+  void GimbalUpdate();        // 云台状态更新
+  void ChassisStateUpdate();  // 底盘控制状态更新
+
  private:
   // 状态机
-  enum StateMachineType {
-    GM_NO_FORCE,     // 无力模式
-    GM_INIT,         // 初始化模式，底盘断电
-    GM_MATCH,        // 比赛模式
-    GM_TEST,         // 调试模式
-    GM_AIMBOT,       // 自瞄模式
-    GM_NOGIMBAL,     // 云台断电下的模式
-    GM_HIGH_SPEED,   // 高速模式
-    GM_SINGLE_WHEEL  // 单轮模式
-  };
+  typedef enum {
+    GM_NO_FORCE = 0,     // 无力模式
+    GM_INIT = 1,         // 初始化模式，底盘断电
+    GM_MATCH = 2,        // 比赛模式
+    GM_TEST = 3,         // 调试模式
+    GM_AIMBOT = 4,       // 自瞄模式
+    GM_NOGIMBAL = 5,     // 云台断电下的模式
+    GM_HIGH_SPEED = 6,   // 高速模式
+    GM_SINGLE_WHEEL = 7  // 单轮模式
+  } StateMachineType;
 
   struct ChassisRequestState_t {
     i8 ChassisMoveXRequest;  // x轴运动控制
@@ -147,12 +154,6 @@ class Gimbal {
   const f32 kmouse_sensitivity_y_;  // 鼠标y轴灵敏系数 10.0f
   const f32 highest_pitch_angle_;   // 云台pitch轴最高 35.0f
   const f32 lowest_pitch_angle_;    // 云台pitch轴最低 30.0f
-
- public:
-  void GimbalInit();          // 云台初始化
-  void StateUpdate();         // 云台状态基更新
-  void GimbalUpdate();        // 云台状态更新
-  void ChassisStateUpdate();  // 底盘控制状态更新
 
  private:
   void GimbalEnableUpdate();    // 云台电机使能计算

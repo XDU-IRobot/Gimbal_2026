@@ -305,7 +305,7 @@ void Gimbal::ChassisStateUpdate() {
   }
 
   switch ((StateMachine_)) {
-    case StateMachineType::GM_TEST:  // 测试模式下，底盘正常运行，有陀螺
+    case GM_TEST:  // 测试模式下，底盘正常运行，有陀螺
       ChassisRequestStatePacket_.ChassisMoveXRequest = (i8)(chassis_x_rc_ * kchassis_xy_rc_);
       ChassisRequestStatePacket_.ChassisMoveYRequest = (i8)(chassis_y_rc_ * kchassis_xy_rc_);
       ChassisRequestStatePacket_.AimSpeedChange = 0;
