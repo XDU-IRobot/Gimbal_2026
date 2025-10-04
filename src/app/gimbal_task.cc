@@ -233,7 +233,7 @@ void Gimbal::GimbalUpdate() {
       RotorEnableUpdate();  // 拨盘使能计算
       break;
 
-    case GM_AIMBOT:          // 自瞄测试模式下，云台控制权交给NUC，底盘断电，发射系统正常工作
+    case GM_AIMBOT:  // 自瞄测试模式下，云台控制权交给NUC，底盘断电，发射系统正常工作
       GimbalAimbotUpdate();  // 云台电机自瞄计算
       AmmoEnableUpdate();    // 摩擦轮机构使能计算
       RotorEnableUpdate();   // 拨盘使能计算
@@ -313,7 +313,7 @@ void Gimbal::ChassisStateUpdate() {
       ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 3);  // 清除第 4 位
       if (remote->dial() == 660 || remote->key(RcKey::kShift) == 1 ||
           (rc_remote->data().keyboard_key >> 4 & 0x01) == 1) {
-        ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 1);   // 第 2 位 置 1，此时小陀螺正转开启
+        ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 1);  // 第 2 位 置 1，此时小陀螺正转开启
         ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 2);  // 清除第 3 位
       } else if (remote->dial() == -660) {
         ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 2);   // 第3位 置 1，此时小陀螺反转开启
@@ -802,7 +802,7 @@ void Gimbal::AimbotDateUpdate() {
 void Gimbal::MovePIDUpdate() {
   gimbal_yaw_rc_ = LoopConstrain(gimbal_yaw_rc_, 0.0f, 360.0f);                                // yaw轴周期限制
   gimbal_pitch_rc_ = Constrain(gimbal_pitch_rc_, -highest_pitch_angle_, lowest_pitch_angle_);  // pitch轴限位
-  yaw_pid_position_.Update(gimbal_yaw_rc_, INS->yaw);                                           // pid更新
+  yaw_pid_position_.Update(gimbal_yaw_rc_, INS->yaw);                                          // pid更新
   yaw_pid_speed_.Update(yaw_pid_position_.value() + kyaw_speed_ * yaw_motor_.rpm(), yaw_motor_.rpm());
   pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS->pitch);
   pitch_pid_speed_.Update(pitch_pid_position_.value(), pitch_motor_->vel());
