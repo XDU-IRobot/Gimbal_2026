@@ -10,8 +10,7 @@ extern ChassisCommunicator *chassis_communicator;
 extern INS_t INS;
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -28,7 +27,7 @@ void USBReceive(uint8_t *rx_data, uint8_t len) {
         aimbot_frame.YawRelativeAngle = aimbot_frame.Yaw;
         aimbot_frame.PitchRelativeAngle = aimbot_frame.Pitch;
         break;
-        
+
       default:
         break;
     }

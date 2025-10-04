@@ -1,8 +1,8 @@
 #include "attitude_task.hpp"
 
 using rm::device::BMI088;
-using rm::modules::algorithm::MahonyAhrs;
 using rm::modules::algorithm::ImuData6Dof;
+using rm::modules::algorithm::MahonyAhrs;
 
 INS_t *INS;
 
