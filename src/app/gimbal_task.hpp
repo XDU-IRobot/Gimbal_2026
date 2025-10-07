@@ -55,9 +55,6 @@ class Gimbal {
     i8 reserve[1];           // 保留位
   };
 
-  DmMotorSettings<DmMotorControlMode::kMit> *pitch_motor_settings_;  // 云台pitch电机设置
-  DmMotor<DmMotorControlMode::kMit> *pitch_motor_;                   // 云台pitch电机对象
-
   GM6020 yaw_motor_;  // 云台yaw电机对象
 
   M3508 ammo_left_;   // 左摩擦轮对象
@@ -94,7 +91,6 @@ class Gimbal {
   PID<PIDType::kPosition> ammo_pid_right_;  // 右摩擦轮速度pid
 
   PID<PIDType::kPosition> rotor_pid_speed_;         // 拨盘速度pid
-  RingPID<PIDType::kPosition> rotor_pid_position_;  // 拨盘位置pid
 
   f32 gimbal_yaw_rc_;    // 云台yaw轴遥控数据
   f32 gimbal_pitch_rc_;  // 云台pitch轴遥控数据

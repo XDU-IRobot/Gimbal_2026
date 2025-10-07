@@ -3,8 +3,9 @@
 
 ChassisCommunicator *chassis_communicator = nullptr;
 ChassisCommunicator::ChassisCommunicator(hal::CanInterface &can) : CanDevice(can, 0x100) {}
+
 extern Gimbal *gimbal;
-extern hal::Can can1;
+extern Can can1;
 
 void ChassisCommunicator::RxCallback(const hal::CanMsg *msg) {
   GimbalRequestStatePacket_.heat_real = ((u16)msg->data[0] << 8 | (u16)msg->data[1]);
@@ -33,7 +34,7 @@ void CommunicateTask(void const *argument) {
   chassis_communicator = new ChassisCommunicator{can1};
   while (1) {  // 1000Hz
     chassis_communicator->SendChassisCommand();
-    osDelay(1);
+    osDelay(10);
   }
 }
 }

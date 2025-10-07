@@ -1,9 +1,9 @@
 {
     "configurations": [
         {
-            "name": "template Debug",
+            "name": "steer_wheel_gimbal Debug",
             "cwd": "${workspaceRoot}",
-            "executable": "./build/Debug/template.elf",
+            "executable": "./build/Debug/steer_wheel_gimbal.elf",
             "request": "launch",    //注意必须使用launch，不能使用attach
             "preLaunchTask": "Load",   //防止忘了下载程序
             "type": "cortex-debug",

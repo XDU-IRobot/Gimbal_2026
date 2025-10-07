@@ -18,7 +18,7 @@
         "-f",
         "./openocd/openocd.cfg",
         "-c",
-        "program ./build/Debug/template.elf verify reset exit"
+        "program ./build/Debug/steer_wheel_gimbal.elf verify reset exit"
       ],
       "dependsOn": ["Build"],
       "detail": "下载固件"

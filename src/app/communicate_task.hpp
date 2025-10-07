@@ -6,11 +6,12 @@
 #include "librm.hpp"
 
 using namespace rm;
+using namespace rm::hal;
 using namespace rm::device;
 
 class ChassisCommunicator final : public CanDevice {
  public:
-  explicit ChassisCommunicator(hal::CanInterface &can);
+  explicit ChassisCommunicator(CanInterface &can);
   ChassisCommunicator() = delete;
   ~ChassisCommunicator() override = default;
 
@@ -23,7 +24,7 @@ class ChassisCommunicator final : public CanDevice {
   u8 chassis_power_state() { return GimbalRequestStatePacket_.chassis_power_state; }
   u8 ammo_power_state() { return GimbalRequestStatePacket_.ammo_power_state; }
 
-  void RxCallback(const hal::CanMsg *msg) override;
+  void RxCallback(const CanMsg *msg) override;
   void SendChassisCommand();
 
  private:

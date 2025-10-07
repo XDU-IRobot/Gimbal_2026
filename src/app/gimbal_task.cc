@@ -5,16 +5,19 @@
 #include "rc_referee_data.hpp"
 
 Gimbal *gimbal;
-VT03 *rc_remote;
+VT03 rc_remote;
 Can can1(hcan1);
 Can can2(hcan2);
 
+static Serial *remote_uart;
 static DR16 *remote;
-static hal::Serial *remote_uart;
 
+static DmMotorSettings<DmMotorControlMode::kMit> *pitch_motorsettings;
+static DmMotor<DmMotorControlMode::kMit> *pitch_motor;
+
+extern INS_t INS;
 extern AimbotFrame_SCM_t aimbot_frame;
 extern GimabalImuFrame_SCM_t gimbal_imu_frame;
-extern INS_t *INS;
 extern ChassisCommunicator *chassis_communicator;
 
 Gimbal::Gimbal()
@@ -112,7 +115,7 @@ Gimbal::Gimbal()
       lowest_pitch_angle_(30.0f) {}
 
 /**
- * @brief  初始化can,遥控器
+ * @brief  初始化can,yaw、pitch电机初位置
  * @note
  * @tparam
  */
@@ -121,25 +124,21 @@ void Gimbal::GimbalInit() {
   can2.SetFilter(0, 0);
   can1.Begin();
   can2.Begin();
-
-  this->pitch_motor_settings_ = new DmMotorSettings<DmMotorControlMode::kMit>{
-      0x03, 0x02, 12.5f, 30.0f, 10.0f, std::make_pair(0.0f, 500.0f), std::make_pair(0.0f, 5.0f)};
-  this->pitch_motor_ = new DmMotor<DmMotorControlMode::kMit>(can2, *this->pitch_motor_settings_, true);
-
+  
   remote_uart = new hal::Serial(huart3, 18, hal::stm32::UartMode::kNormal, hal::stm32::UartMode::kDma);
   remote = new DR16(*remote_uart);
   remote->Begin();
 
-  gimbal = new Gimbal();
+  pitch_motorsettings = new DmMotorSettings<DmMotorControlMode::kMit>{
+      0x03, 0x02, 12.5f, 30.0f, 10.0f, std::make_pair(0.0f, 500.0f), std::make_pair(0.0f, 5.0f)};
+  pitch_motor = new DmMotor<DmMotorControlMode::kMit>(can2, *pitch_motorsettings, true);
 
-  // while (chassis_communicator->gimbal_power_state_ == 0)
-  // {
-  //     DMEnable_ = 0; // 检测到云台上电才退出
-  // }
+  Serial referee_uart(huart6, 128, hal::stm32::UartMode::kDma, hal::stm32::UartMode::kDma);
+  RcReferee rcdata(referee_uart);
+  rcdata.Begin();
 
-  osDelay(1000);
-  gimbal_yaw_rc_ = INS->yaw;      // 云台yaw初始化
-  gimbal_pitch_rc_ = INS->pitch;  // 云台pitch初始化
+  gimbal_yaw_rc_ = INS.yaw;      // 云台yaw初始化
+  gimbal_pitch_rc_ = INS.pitch;  // 云台pitch初始化
 }
 
 /**
@@ -233,7 +232,7 @@ void Gimbal::GimbalUpdate() {
       RotorEnableUpdate();  // 拨盘使能计算
       break;
 
-    case GM_AIMBOT:  // 自瞄测试模式下，云台控制权交给NUC，底盘断电，发射系统正常工作
+    case GM_AIMBOT:          // 自瞄测试模式下，云台控制权交给NUC，底盘断电，发射系统正常工作
       GimbalAimbotUpdate();  // 云台电机自瞄计算
       AmmoEnableUpdate();    // 摩擦轮机构使能计算
       RotorEnableUpdate();   // 拨盘使能计算
@@ -265,15 +264,15 @@ void Gimbal::GimbalUpdate() {
  */
 void Gimbal::ChassisStateUpdate() {
   chassis_x_rc_ = Constrain(remote->right_x() / 660.0f - (f32)remote->key(RcKey::kA) + (f32)remote->key(RcKey::kD) -
-                                (f32)(rc_remote->data().keyboard_key >> 2 & 0x01) +
-                                (f32)(rc_remote->data().keyboard_key >> 3 & 0x01),
+                                (f32)(rc_remote.data().keyboard_key >> 2 & 0x01) +
+                                (f32)(rc_remote.data().keyboard_key >> 3 & 0x01),
                             -1.0f, 1.0f);
   chassis_y_rc_ = Constrain(remote->right_y() / 660.0f + (f32)remote->key(RcKey::kW) - (f32)remote->key(RcKey::kS) +
-                                (f32)(rc_remote->data().keyboard_key >> 0 & 0x01) -
-                                (f32)(rc_remote->data().keyboard_key >> 1 & 0x01),
+                                (f32)(rc_remote.data().keyboard_key >> 0 & 0x01) -
+                                (f32)(rc_remote.data().keyboard_key >> 1 & 0x01),
                             -1.0f, 1.0f);
   ChassisRequestStatePacket_.UiChange =
-      (remote->key(RcKey::kR) == 1 || (rc_remote->data().keyboard_key >> 8 & 0x01) == 1) ? 1 : 0;  // Ui是否开启
+      (remote->key(RcKey::kR) == 1 || (rc_remote.data().keyboard_key >> 8 & 0x01) == 1) ? 1 : 0;  // Ui是否开启
 
   if ((aimbot_frame.AimbotState >> 0) & 0x01) {
     ChassisRequestStatePacket_.GetTargetFlag = 1;
@@ -287,15 +286,15 @@ void Gimbal::ChassisStateUpdate() {
     ChassisRequestStatePacket_.SuggestFireFlag = 0;
   }
 
-  if (remote->key(RcKey::kCtrl) == 1 || rc_remote->data().keyboard_key >> 5 & 0x01) {
-    if (remote->key(RcKey::kV) == 1 || rc_remote->data().keyboard_key >> 14 & 0x01) {
+  if (remote->key(RcKey::kCtrl) == 1 || rc_remote.data().keyboard_key >> 5 & 0x01) {
+    if (remote->key(RcKey::kV) == 1 || rc_remote.data().keyboard_key >> 14 & 0x01) {
       aim_speed_change_ = -1;
     } else if (aim_speed_change_ == -1) {
       ChassisRequestStatePacket_.AimSpeedChange--;
       if (ChassisRequestStatePacket_.AimSpeedChange < -10) ChassisRequestStatePacket_.AimSpeedChange = -10;
       aim_speed_change_ = 0;
     }
-    if (remote->key(RcKey::kB) == 1 || rc_remote->data().keyboard_key >> 15 & 0x01) {
+    if (remote->key(RcKey::kB) == 1 || rc_remote.data().keyboard_key >> 15 & 0x01) {
       aim_speed_change_ = 1;
     } else if (aim_speed_change_ == 1) {
       ChassisRequestStatePacket_.AimSpeedChange++;
@@ -312,8 +311,8 @@ void Gimbal::ChassisStateUpdate() {
       ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 0);
       ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 3);  // 清除第 4 位
       if (remote->dial() == 660 || remote->key(RcKey::kShift) == 1 ||
-          (rc_remote->data().keyboard_key >> 4 & 0x01) == 1) {
-        ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 1);  // 第 2 位 置 1，此时小陀螺正转开启
+          (rc_remote.data().keyboard_key >> 4 & 0x01) == 1) {
+        ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 1);   // 第 2 位 置 1，此时小陀螺正转开启
         ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 2);  // 清除第 3 位
       } else if (remote->dial() == -660) {
         ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 2);   // 第3位 置 1，此时小陀螺反转开启
@@ -322,7 +321,7 @@ void Gimbal::ChassisStateUpdate() {
         ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 1);  // 清除第 2 位
         ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 2);  // 清除第 3 位
       }
-      if (remote->key(RcKey::kC) == 1 || (rc_remote->data().keyboard_key >> 13 & 0x01) == 1) {
+      if (remote->key(RcKey::kC) == 1 || (rc_remote.data().keyboard_key >> 13 & 0x01) == 1) {
         speed_change_flag_ = 1;
       } else if (speed_change_flag_ == 1) {
         speed_change_flag_ = 0;
@@ -347,20 +346,20 @@ void Gimbal::ChassisStateUpdate() {
       ChassisRequestStatePacket_.ChassisMoveYRequest = (i8)(chassis_y_rc_ * kchassis_xy_rc_);
       ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1);        // 最低位 置 1，此时底盘有力
       ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 2);  // 清除第 3 位
-      if (remote->key(RcKey::kShift) == 1 || (rc_remote->data().keyboard_key >> 4 & 0x01) == 1) {
+      if (remote->key(RcKey::kShift) == 1 || (rc_remote.data().keyboard_key >> 4 & 0x01) == 1) {
         ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 1);
       }  // 第2位 置1，此时小陀螺正转开启
       else {
         ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 1);  // 清除第 2 位
       }
-      if (remote->key(RcKey::kC) == 1 || (rc_remote->data().keyboard_key >> 13 & 0x01) == 1) {
+      if (remote->key(RcKey::kC) == 1 || (rc_remote.data().keyboard_key >> 13 & 0x01) == 1) {
         speed_change_flag_ = 1;
       } else if (speed_change_flag_ == 1) {
         speed_change_flag_ = 0;
         ChassisRequestStatePacket_.ChassisStateRequest ^= (u8)(1 << 4);  // 第 5 位置 1，高速模式
       }
 
-      if (remote->key(RcKey::kZ) == 1 || (rc_remote->data().keyboard_key >> 11 & 0x01) == 1) {
+      if (remote->key(RcKey::kZ) == 1 || (rc_remote.data().keyboard_key >> 11 & 0x01) == 1) {
         single_wheel_flag_ = 1;
       } else if (single_wheel_flag_ == 1) {
         single_wheel_flag_ = 0;
@@ -391,7 +390,7 @@ void Gimbal::ChassisStateUpdate() {
       ChassisRequestStatePacket_.ChassisStateRequest = 0;
       ChassisRequestStatePacket_.AimSpeedChange = 0;
       ChassisRequestStatePacket_.SuggestFireFlag = 0;
-      if (remote->key(RcKey::kShift) == 1 || (rc_remote->data().keyboard_key >> 4 & 0x01) == 1) {
+      if (remote->key(RcKey::kShift) == 1 || (rc_remote.data().keyboard_key >> 4 & 0x01) == 1) {
         ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 1);
         ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 2);
       }  // 第 2 位 置 1，此时小陀螺正转开启
@@ -406,7 +405,7 @@ void Gimbal::ChassisStateUpdate() {
       ChassisRequestStatePacket_.ChassisMoveYRequest = (i8)(chassis_y_rc_ * kchassis_xy_rc_);
       ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1);
       if (remote->dial() == 660 || (i16)remote->key(RcKey::kShift) == 1 ||
-          (i16)(rc_remote->data().keyboard_key >> 4 & 0x01) == 1) {
+          (i16)(rc_remote.data().keyboard_key >> 4 & 0x01) == 1) {
         ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 1);  // 第2位 置1，此时小陀螺正转开启
       } else if (remote->dial() == -660) {
         ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 2);  // 第2位 置1，此时小陀螺反转开启
@@ -462,7 +461,7 @@ void Gimbal::GimbalEnableUpdate() {
   MovePIDUpdate();
   gimbal_imu_frame.mode = 0x00;
   yaw_motor_.SetCurrent(static_cast<i16>(yaw_pid_speed_.value() + kyaw_current_ * yaw_motor_.rpm()));
-  pitch_motor_->SetPosition(0, 0, -pitch_pid_speed_.value(), 0, 0);
+  pitch_motor->SetPosition(0, 0, -pitch_pid_speed_.value(), 0, 0);
 }
 
 /**
@@ -474,13 +473,13 @@ void Gimbal::GimbalMatchUpdate() {
   GimbalRCDataUpdate();
   RotorMotorDataUpdate();
 
-  if ((remote->key(RcKey::kF) == 1 || (rc_remote->data().keyboard_key >> 9 & 0x01) == 1) && XFstate_ == 0) {
+  if ((remote->key(RcKey::kF) == 1 || (rc_remote.data().keyboard_key >> 9 & 0x01) == 1) && XFstate_ == 0) {
     DFflag_ = 1;
   } else if (DFflag_ == 1) {
     DFflag_ = 0;
     DFstate_ ^= 1;
   }
-  if ((remote->key(RcKey::kG) == 1 || (rc_remote->data().keyboard_key >> 10 & 0x01) == 1) && DFstate_ == 0) {
+  if ((remote->key(RcKey::kG) == 1 || (rc_remote.data().keyboard_key >> 10 & 0x01) == 1) && DFstate_ == 0) {
     XFflag_ = 1;
   } else if (XFflag_ == 1) {
     XFflag_ = 0;
@@ -497,25 +496,25 @@ void Gimbal::GimbalMatchUpdate() {
 
   if (gimbal_imu_frame.mode == 0x01 && ((aimbot_frame.AimbotState >> 0) & 0x01) == 1 &&
       aimbot_frame.AimbotTarget != 0x20 &&
-      (remote->mouse_button_right() == 1 || rc_remote->data().mouse_button_right == 1)) {
+      (remote->mouse_button_right() == 1 || rc_remote.data().mouse_button_right == 1)) {
     AimbotDateUpdate();
     AimPIDUpdate();
     yaw_motor_.SetCurrent(static_cast<i16>(aimbot_yaw_pid_speed_.value() + kyaw_current_ * yaw_motor_.rpm()));
-    pitch_motor_->SetPosition(0, 0, -aimbot_pitch_pid_speed_.value(), 0, 0);
+    pitch_motor->SetPosition(0, 0, -aimbot_pitch_pid_speed_.value(), 0, 0);
   } else if (gimbal_imu_frame.mode == 0x04 && ((aimbot_frame.AimbotState >> 0) & 0x01) == 1) {
     AimbotDateUpdate();
     BuffPIDUpdate();
     yaw_motor_.SetCurrent(static_cast<i16>(buff_yaw_pid_speed_.value() + kyaw_current_ * yaw_motor_.rpm()));
-    pitch_motor_->SetPosition(0, 0, -buff_pitch_pid_speed_.value(), 0, 0);
+    pitch_motor->SetPosition(0, 0, -buff_pitch_pid_speed_.value(), 0, 0);
   } else if (gimbal_imu_frame.mode == 0x08 && ((aimbot_frame.AimbotState >> 0) & 0x01) == 1) {
     AimbotDateUpdate();
     BuffPIDUpdate();
     yaw_motor_.SetCurrent(static_cast<i16>(buff_yaw_pid_speed_.value() + kyaw_current_ * yaw_motor_.rpm()));
-    pitch_motor_->SetPosition(0, 0, -buff_pitch_pid_speed_.value(), 0, 0);
+    pitch_motor->SetPosition(0, 0, -buff_pitch_pid_speed_.value(), 0, 0);
   } else {
     MovePIDUpdate();
     yaw_motor_.SetCurrent(static_cast<i16>(yaw_pid_speed_.value() + kyaw_current_ * yaw_motor_.rpm()));
-    pitch_motor_->SetPosition(0, 0, -pitch_pid_speed_.value(), 0, 0);
+    pitch_motor->SetPosition(0, 0, -pitch_pid_speed_.value(), 0, 0);
   }
 }
 
@@ -531,7 +530,7 @@ void Gimbal::GimbalAimbotUpdate() {
   RotorMotorDataUpdate();
   yaw_motor_.SetCurrent(static_cast<i16>(aimbot_yaw_pid_speed_.value() + kyaw_current_ * yaw_motor_.rpm()));
   // osDelay(1000);
-  pitch_motor_->SetPosition(0, 0, -aimbot_pitch_pid_speed_.value(), 0, 0);
+  pitch_motor->SetPosition(0, 0, -aimbot_pitch_pid_speed_.value(), 0, 0);
 }
 
 /**
@@ -541,8 +540,8 @@ void Gimbal::GimbalAimbotUpdate() {
 void Gimbal::GimbalDisableUpdate() {
   DaMiaoMotorDisable();
   gimbal_imu_frame.mode = 0x00;
-  gimbal_yaw_rc_ = INS->yaw;  // 云台位置初始化
-  gimbal_pitch_rc_ = INS->pitch;
+  gimbal_yaw_rc_ = INS.yaw;  // 云台位置初始化
+  gimbal_pitch_rc_ = INS.pitch;
   yaw_motor_.SetCurrent(0);
 }
 
@@ -577,11 +576,11 @@ void Gimbal::AmmoDisableUpdate() {
  * @tparam
  */
 void Gimbal::RotorAimbotUpdate() {
-  if ((remote->dial() >= 650 || remote->mouse_button_left() == 1 || rc_remote->data().mouse_button_left == 1) &&
-      (remote->mouse_button_right() == 1 || rc_remote->data().mouse_button_right == 1) &&
+  if ((remote->dial() >= 650 || remote->mouse_button_left() == 1 || rc_remote.data().mouse_button_left == 1) &&
+      (remote->mouse_button_right() == 1 || rc_remote.data().mouse_button_right == 1) &&
       ((aimbot_frame.AimbotState >> 1) & 0x01) == 1) {
     ammo_flag_rc_ = 1;
-  } else if (remote->dial() >= 650 || remote->mouse_button_left() == 1 || rc_remote->data().mouse_button_left == 1) {
+  } else if (remote->dial() >= 650 || remote->mouse_button_left() == 1 || rc_remote.data().mouse_button_left == 1) {
     ammo_flag_rc_ = 1;
   } else if (remote->dial() <= -650) {
     shoot_flag_ = 1;
@@ -623,13 +622,13 @@ void Gimbal::RotorAimbotUpdate() {
  */
 void Gimbal::RotorMatchUpdate() {
   if (gimbal_imu_frame.mode == 0x01) {
-    if ((remote->dial() >= 650 || remote->mouse_button_left() == 1 || rc_remote->data().mouse_button_left == 1) &&
-        (remote->mouse_button_right() == 1 || rc_remote->data().mouse_button_right == 1) &&
+    if ((remote->dial() >= 650 || remote->mouse_button_left() == 1 || rc_remote.data().mouse_button_left == 1) &&
+        (remote->mouse_button_right() == 1 || rc_remote.data().mouse_button_right == 1) &&
         ((aimbot_frame.AimbotState >> 1) & 0x01) == 1) {
       ammo_flag_rc_ = 1;
-    } else if (remote->mouse_button_right() == 0 && rc_remote->data().mouse_button_right == 0 &&
+    } else if (remote->mouse_button_right() == 0 && rc_remote.data().mouse_button_right == 0 &&
                (remote->dial() >= 650 || remote->mouse_button_left() == 1 ||
-                rc_remote->data().mouse_button_left == 1)) {
+                rc_remote.data().mouse_button_left == 1)) {
       ammo_flag_rc_ = 1;
     } else if (remote->dial() <= -650) {
       shoot_flag_ = 1;
@@ -648,10 +647,10 @@ void Gimbal::RotorMatchUpdate() {
       ammo_flag_rc_ = 2;
     }
   } else if (gimbal_imu_frame.mode == 0x04 || gimbal_imu_frame.mode == 0x08) {
-    if (remote->mouse_button_left() == 1 || rc_remote->data().mouse_button_left == 1) {
+    if (remote->mouse_button_left() == 1 || rc_remote.data().mouse_button_left == 1) {
       shoot_flag_ = 1;
     } else if (((aimbot_frame.AimbotState >> 1) & 0x01) == 1 &&
-               (remote->mouse_button_right() == 1 || rc_remote->data().mouse_button_right == 1)) {
+               (remote->mouse_button_right() == 1 || rc_remote.data().mouse_button_right == 1)) {
       shoot_flag_ = 1;
     } else {
       shoot_flag_ = 0;
@@ -754,7 +753,7 @@ void Gimbal::RotorEnableUpdate() {  // 没有单发模式，即时射击，无�
 void Gimbal::DaMiaoMotorEnable() {
   if (DMEnable_ == 0) {
     // osDelay(0.1);
-    pitch_motor_->SendInstruction(DmMotorInstructions::kEnable);  // 使达妙电机使能
+    pitch_motor->SendInstruction(DmMotorInstructions::kEnable);  // 使达妙电机使能
     DMEnable_ = 1;
   }
 }
@@ -766,7 +765,7 @@ void Gimbal::DaMiaoMotorEnable() {
 void Gimbal::DaMiaoMotorDisable() {
   if (DMEnable_ == 1) {
     // osDelay(0.1);
-    pitch_motor_->SendInstruction(DmMotorInstructions::kDisable);  // 使达妙电机失能
+    pitch_motor->SendInstruction(DmMotorInstructions::kDisable);  // 使达妙电机失能
     DMEnable_ = 0;
   }
 }
@@ -777,10 +776,10 @@ void Gimbal::DaMiaoMotorDisable() {
  */
 void Gimbal::GimbalRCDataUpdate() {
   gimbal_yaw_rc_ -= Map(
-      remote->left_x() + remote->mouse_x() * kmouse_sensitivity_x_ + rc_remote->data().mouse_x * kmouse_sensitivity_x_,
+      remote->left_x() + remote->mouse_x() * kmouse_sensitivity_x_ + rc_remote.data().mouse_x * kmouse_sensitivity_x_,
       -660, 660, -sensitivity_x_, sensitivity_x_);
   gimbal_pitch_rc_ -= Map(
-      remote->left_y() + remote->mouse_y() * kmouse_sensitivity_y_ + rc_remote->data().mouse_y * kmouse_sensitivity_y_,
+      remote->left_y() + remote->mouse_y() * kmouse_sensitivity_y_ + rc_remote.data().mouse_y * kmouse_sensitivity_y_,
       -660, 660, -sensitivity_y_, sensitivity_y_);
 }
 
@@ -802,10 +801,10 @@ void Gimbal::AimbotDateUpdate() {
 void Gimbal::MovePIDUpdate() {
   gimbal_yaw_rc_ = LoopConstrain(gimbal_yaw_rc_, 0.0f, 360.0f);                                // yaw轴周期限制
   gimbal_pitch_rc_ = Constrain(gimbal_pitch_rc_, -highest_pitch_angle_, lowest_pitch_angle_);  // pitch轴限位
-  yaw_pid_position_.Update(gimbal_yaw_rc_, INS->yaw);                                          // pid更新
+  yaw_pid_position_.Update(gimbal_yaw_rc_, INS.yaw);                                           // pid更新
   yaw_pid_speed_.Update(yaw_pid_position_.value() + kyaw_speed_ * yaw_motor_.rpm(), yaw_motor_.rpm());
-  pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS->pitch);
-  pitch_pid_speed_.Update(pitch_pid_position_.value(), pitch_motor_->vel());
+  pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS.pitch);
+  pitch_pid_speed_.Update(pitch_pid_position_.value(), pitch_motor->vel());
 }
 
 /**
@@ -816,10 +815,10 @@ void Gimbal::AimPIDUpdate() {
   gimbal_yaw_rc_ = LoopConstrain(gimbal_yaw_rc_, 0.0f, 360.0f);                                // yaw轴周期限制
   gimbal_pitch_rc_ = Constrain(gimbal_pitch_rc_, -highest_pitch_angle_, lowest_pitch_angle_);  // pitch轴限位
 
-  aimbot_yaw_pid_position_.Update(gimbal_yaw_rc_, INS->yaw);  // pid更新
+  aimbot_yaw_pid_position_.Update(gimbal_yaw_rc_, INS.yaw);  // pid更新
   aimbot_yaw_pid_speed_.Update(aimbot_yaw_pid_position_.value() + kyaw_speed_ * yaw_motor_.rpm(), yaw_motor_.rpm());
-  aimbot_pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS->pitch);
-  aimbot_pitch_pid_speed_.Update(aimbot_pitch_pid_position_.value(), pitch_motor_->vel());
+  aimbot_pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS.pitch);
+  aimbot_pitch_pid_speed_.Update(aimbot_pitch_pid_position_.value(), pitch_motor->vel());
 }
 
 /**
@@ -830,10 +829,10 @@ void Gimbal::BuffPIDUpdate() {
   gimbal_yaw_rc_ = LoopConstrain(gimbal_yaw_rc_, 0.0f, 360.0f);                                // yaw轴周期限制
   gimbal_pitch_rc_ = Constrain(gimbal_pitch_rc_, -highest_pitch_angle_, lowest_pitch_angle_);  // pitch轴限位
 
-  buff_yaw_pid_position_.Update(gimbal_yaw_rc_, INS->yaw);  // pid更新
+  buff_yaw_pid_position_.Update(gimbal_yaw_rc_, INS.yaw);  // pid更新
   buff_yaw_pid_speed_.Update(buff_yaw_pid_position_.value() + kyaw_speed_ * yaw_motor_.rpm(), yaw_motor_.rpm());
-  buff_pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS->pitch);
-  buff_pitch_pid_speed_.Update(buff_pitch_pid_position_.value(), pitch_motor_->vel());
+  buff_pitch_pid_position_.Update(-gimbal_pitch_rc_, -INS.pitch);
+  buff_pitch_pid_speed_.Update(buff_pitch_pid_position_.value(), pitch_motor->vel());
 }
 
 /**
@@ -852,12 +851,8 @@ void Gimbal::RotorMotorDataUpdate() {
 
 extern "C" {
 void GimbalTask(void const *argument) {
+  gimbal = new Gimbal();
   gimbal->GimbalInit();
-
-  hal::Serial referee_uart(huart6, 128, hal::stm32::UartMode::kDma, hal::stm32::UartMode::kDma);
-  RcReferee rcdata(referee_uart);
-  rcdata.Begin();
-
   while (1) {
     gimbal->StateUpdate();         // 云台状态更新
     gimbal->GimbalUpdate();        // 云台所有电机状态更新
