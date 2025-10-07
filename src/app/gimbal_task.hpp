@@ -90,7 +90,7 @@ class Gimbal {
   PID<PIDType::kPosition> ammo_pid_left_;   // 左摩擦轮速度pid
   PID<PIDType::kPosition> ammo_pid_right_;  // 右摩擦轮速度pid
 
-  PID<PIDType::kPosition> rotor_pid_speed_;         // 拨盘速度pid
+  PID<PIDType::kPosition> rotor_pid_speed_;  // 拨盘速度pid
 
   f32 gimbal_yaw_rc_;    // 云台yaw轴遥控数据
   f32 gimbal_pitch_rc_;  // 云台pitch轴遥控数据

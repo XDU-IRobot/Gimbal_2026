@@ -124,7 +124,7 @@ void Gimbal::GimbalInit() {
   can2.SetFilter(0, 0);
   can1.Begin();
   can2.Begin();
-  
+
   remote_uart = new hal::Serial(huart3, 18, hal::stm32::UartMode::kNormal, hal::stm32::UartMode::kDma);
   remote = new DR16(*remote_uart);
   remote->Begin();
@@ -232,7 +232,7 @@ void Gimbal::GimbalUpdate() {
       RotorEnableUpdate();  // 拨盘使能计算
       break;
 
-    case GM_AIMBOT:          // 自瞄测试模式下，云台控制权交给NUC，底盘断电，发射系统正常工作
+    case GM_AIMBOT:  // 自瞄测试模式下，云台控制权交给NUC，底盘断电，发射系统正常工作
       GimbalAimbotUpdate();  // 云台电机自瞄计算
       AmmoEnableUpdate();    // 摩擦轮机构使能计算
       RotorEnableUpdate();   // 拨盘使能计算
@@ -263,14 +263,14 @@ void Gimbal::GimbalUpdate() {
  * @tparam ChassisRequestStatePacket_ 向底盘发送can包数据
  */
 void Gimbal::ChassisStateUpdate() {
-  chassis_x_rc_ = Constrain(remote->right_x() / 660.0f - (f32)remote->key(RcKey::kA) + (f32)remote->key(RcKey::kD) -
-                                (f32)(rc_remote.data().keyboard_key >> 2 & 0x01) +
-                                (f32)(rc_remote.data().keyboard_key >> 3 & 0x01),
-                            -1.0f, 1.0f);
-  chassis_y_rc_ = Constrain(remote->right_y() / 660.0f + (f32)remote->key(RcKey::kW) - (f32)remote->key(RcKey::kS) +
-                                (f32)(rc_remote.data().keyboard_key >> 0 & 0x01) -
-                                (f32)(rc_remote.data().keyboard_key >> 1 & 0x01),
-                            -1.0f, 1.0f);
+  chassis_x_rc_ =
+      Constrain(remote->right_x() / 660.0f - (f32)remote->key(RcKey::kA) + (f32)remote->key(RcKey::kD) -
+                    (f32)(rc_remote.data().keyboard_key >> 2 & 0x01) + (f32)(rc_remote.data().keyboard_key >> 3 & 0x01),
+                -1.0f, 1.0f);
+  chassis_y_rc_ =
+      Constrain(remote->right_y() / 660.0f + (f32)remote->key(RcKey::kW) - (f32)remote->key(RcKey::kS) +
+                    (f32)(rc_remote.data().keyboard_key >> 0 & 0x01) - (f32)(rc_remote.data().keyboard_key >> 1 & 0x01),
+                -1.0f, 1.0f);
   ChassisRequestStatePacket_.UiChange =
       (remote->key(RcKey::kR) == 1 || (rc_remote.data().keyboard_key >> 8 & 0x01) == 1) ? 1 : 0;  // Ui是否开启
 
@@ -312,7 +312,7 @@ void Gimbal::ChassisStateUpdate() {
       ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 3);  // 清除第 4 位
       if (remote->dial() == 660 || remote->key(RcKey::kShift) == 1 ||
           (rc_remote.data().keyboard_key >> 4 & 0x01) == 1) {
-        ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 1);   // 第 2 位 置 1，此时小陀螺正转开启
+        ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 1);  // 第 2 位 置 1，此时小陀螺正转开启
         ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 2);  // 清除第 3 位
       } else if (remote->dial() == -660) {
         ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 2);   // 第3位 置 1，此时小陀螺反转开启
@@ -627,8 +627,7 @@ void Gimbal::RotorMatchUpdate() {
         ((aimbot_frame.AimbotState >> 1) & 0x01) == 1) {
       ammo_flag_rc_ = 1;
     } else if (remote->mouse_button_right() == 0 && rc_remote.data().mouse_button_right == 0 &&
-               (remote->dial() >= 650 || remote->mouse_button_left() == 1 ||
-                rc_remote.data().mouse_button_left == 1)) {
+               (remote->dial() >= 650 || remote->mouse_button_left() == 1 || rc_remote.data().mouse_button_left == 1)) {
       ammo_flag_rc_ = 1;
     } else if (remote->dial() <= -650) {
       shoot_flag_ = 1;
