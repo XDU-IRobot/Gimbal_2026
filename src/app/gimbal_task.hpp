@@ -90,7 +90,7 @@ class Gimbal {
   PID<PIDType::kPosition> ammo_pid_left_;   // 左摩擦轮速度pid
   PID<PIDType::kPosition> ammo_pid_right_;  // 右摩擦轮速度pid
 
-  PID<PIDType::kPosition> rotor_pid_speed_;         // 拨盘速度pid
+  PID<PIDType::kPosition> rotor_pid_speed_;  // 拨盘速度pid
 
   f32 gimbal_yaw_rc_;    // 云台yaw轴遥控数据
   f32 gimbal_pitch_rc_;  // 云台pitch轴遥控数据
@@ -140,8 +140,8 @@ class Gimbal {
   const f32 ammo_init_speed_;       // 摩擦轮初始速度 6300.0f
   const f32 kammo_speed_change_;    // 摩擦轮速度改变系数 20.0f
   const f32 rotor_position_dalte_;  // 拨盘位置误差值 2000.0f
-  const f32 rotor_init_speed_[4];  // 拨盘初始速度速度 {低等级正转，高等级正转，单发，反转}{2000.0f, 2500.0f, 2000.0f,
-                                   // -1000.0f}
+  const f32 rotor_init_speed_[4];   // 拨盘初始速度速度 {低等级正转，高等级正转，单发，反转}{2000.0f, 2500.0f, 2000.0f,
+                                    // -1000.0f}
   const f32 sensitivity_x_;         // 云台x轴灵敏度 0.3f
   const f32 sensitivity_y_;         // 云台y轴灵敏度 0.2f
   const f32 kmouse_sensitivity_x_;  // 鼠标x轴灵敏系数 10.0f
