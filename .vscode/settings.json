@@ -120,7 +120,9 @@
     "usb_communicate.hpp": "c",
     "stdlib.h": "c",
     "string.h": "c",
-    "usb_communicate.h": "c"
+    "usb_communicate.h": "c",
+    "cmsis_rtos.h": "c",
+    "go8010_motor.hpp": "c"
   },
   "cortex-debug.variableUseNaturalFormat": false
 }
