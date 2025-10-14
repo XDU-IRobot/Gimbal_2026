@@ -232,7 +232,7 @@ void Gimbal::GimbalUpdate() {
       RotorEnableUpdate();  // 拨盘使能计算
       break;
 
-    case GM_AIMBOT:  // 自瞄测试模式下，云台控制权交给NUC，底盘断电，发射系统正常工作
+    case GM_AIMBOT:          // 自瞄测试模式下，云台控制权交给NUC，底盘断电，发射系统正常工作
       GimbalAimbotUpdate();  // 云台电机自瞄计算
       AmmoEnableUpdate();    // 摩擦轮机构使能计算
       RotorEnableUpdate();   // 拨盘使能计算
@@ -312,7 +312,7 @@ void Gimbal::ChassisStateUpdate() {
       ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 3);  // 清除第 4 位
       if (remote->dial() == 660 || remote->key(RcKey::kShift) == 1 ||
           (rc_remote.data().keyboard_key >> 4 & 0x01) == 1) {
-        ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 1);  // 第 2 位 置 1，此时小陀螺正转开启
+        ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 1);   // 第 2 位 置 1，此时小陀螺正转开启
         ChassisRequestStatePacket_.ChassisStateRequest &= ~(u8)(1 << 2);  // 清除第 3 位
       } else if (remote->dial() == -660) {
         ChassisRequestStatePacket_.ChassisStateRequest |= (u8)(1 << 2);   // 第3位 置 1，此时小陀螺反转开启
