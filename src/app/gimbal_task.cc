@@ -523,6 +523,7 @@ void Gimbal::GimbalMatchUpdate() {
  * @tparam
  */
 void Gimbal::GimbalAimbotUpdate() {
+  gimbal_imu_frame.mode = 0x01;
   DaMiaoMotorEnable();
   GimbalRCDataUpdate();
   AimbotDateUpdate();
