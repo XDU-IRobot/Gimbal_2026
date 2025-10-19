@@ -4,6 +4,8 @@
 #include "USB_communicate.hpp"
 #include "rc_referee_data.hpp"
 
+#include <chrono>
+
 Gimbal *gimbal;
 VT03 rc_remote;
 Can can1(hcan1);
@@ -41,8 +43,8 @@ Gimbal::Gimbal()
       pitch_pid_speed_(0.1f, 0.0f, 3.2f, 5.0f, 0.0f),
       pitch_pid_position_(2.0f, 0.0006f, 16.0f, 10000.0f, 600.0f),
 
-      aimbot_yaw_pid_speed_(600.0f, 0.0f, 800.0f, 25000.0f, 0.0f),
-      aimbot_yaw_pid_position_(30.0f, 0.0f, 1600.0f, 10000.0f, 0.0f, 360.0f),
+      aimbot_yaw_pid_speed_(400.0f, 0.0f, 600.0f, 25000.0f, 0.0f),
+      aimbot_yaw_pid_position_(15.0f, 0.0f, 1200.0f, 10000.0f, 0.0f, 360.0f),
 
       aimbot_pitch_pid_speed_(0.1f, 0.0f, 3.0f, 5.0f, 0.0f),
       aimbot_pitch_pid_position_(2.0f, 0.0007f, 15.0f, 10000.0f, 600.0f),
@@ -103,10 +105,10 @@ Gimbal::Gimbal()
       kyaw_speed_(1.2f),
       kyaw_current_(-0.5f),
       kchassis_xy_rc_(100.0f),
-      ammo_init_speed_(6300.0f),
+      ammo_init_speed_(7000.0f),
       kammo_speed_change_(20.0f),
       rotor_position_dalte_(20.0f),
-      rotor_init_speed_{2000.0f, 2500.0f, 2000.0f, -1000.0f},
+      rotor_init_speed_{1500.0f, 2000.0f, 2000.0f, -1000.0f},
       sensitivity_x_(0.3f),
       sensitivity_y_(0.2f),
       kmouse_sensitivity_x_(10.0f),
@@ -235,7 +237,8 @@ void Gimbal::GimbalUpdate() {
     case GM_AIMBOT:          // 自瞄测试模式下，云台控制权交给NUC，底盘断电，发射系统正常工作
       GimbalAimbotUpdate();  // 云台电机自瞄计算
       AmmoEnableUpdate();    // 摩擦轮机构使能计算
-      RotorEnableUpdate();   // 拨盘使能计算
+      // AmmoDisableUpdate();   // 摩擦轮机构失能计算
+      RotorEnableUpdate();  // 拨盘使能计算
       break;
 
     case GM_HIGH_SPEED:      // 高速模式下，云台正常运动
@@ -854,12 +857,17 @@ void GimbalTask(void const *argument) {
   gimbal = new Gimbal();
   gimbal->GimbalInit();
   while (1) {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+
     gimbal->StateUpdate();         // 云台状态更新
     gimbal->GimbalUpdate();        // 云台所有电机状态更新
     gimbal->ChassisStateUpdate();  // 底盘状态更新
     DjiMotor<>::SendCommand();     // 发送电流
 
-    osDelay(1);
+    // auto now = std::chrono::steady_clock::now();
+
+    vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
+    // osDelay(1);
   }
 }
 }
